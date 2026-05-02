@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCE Papers</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f5f6f8;
+  color: #222;
+}
+
+/* Search bar */
+.searchBox {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f5f6f8;
+  padding: 12px;
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+  outline: none;
+  transition: 0.25s;
+}
+
+.searchBox input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+/* Container */
+.container {
+  max-width: 800px;
+  margin: auto;
+  padding: 10px;
+}
+
+/* Card */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  padding: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  transition: 0.25s ease;
+}
+
+/* Hover (desktop only) */
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+}
+
+/* Top */
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Arrow */
+.arrow {
+  transition: 0.3s;
+}
+
+.card.active .arrow {
+  transform: rotate(180deg);
+}
+
+/* Expand */
+.extra {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.35s ease;
+  font-size: 14px;
+  color: #555;
+}
+
+.card.active .extra {
+  max-height: 150px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+/* Download button */
+.download {
+  display: inline-block;
+  margin-top: 10px;
+  background: #007bff;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.download:hover {
+  background: #0056cc;
+}
+
+/* Skeleton */
+.skeleton {
+  height: 65px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background-size: 200% 100%;
+  animation: loading 1.2s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Tablet */
+@media (min-width: 600px) {
+  .title { font-size: 16px; }
+}
+
+/* Desktop */
+@media (min-width: 900px) {
+  .container { padding: 20px; }
+  .card { padding: 18px; }
+  .title { font-size: 17px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SEARCH -->
+<div class="searchBox">
+  <input type="text" id="search" placeholder="Search papers... (Biology, 2020, PP1)">
+</div>
+
+<div class="container">
+  <div id="list">
+
+    <!-- Skeleton -->
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwiIT2v7iPOyjj4W6RuX-wwOeGnn8tc-Irfo6srSnMsEH0Alwhx9n8lK8oquEv4VTw5/exec";
+
+let openCard = null;
+let allData = [];
+
+// Fetch data
+fetch(API)
+  .then(res => res.json())
+  .then(data => {
+    allData = data;
+    render(data);
+  });
+
+// Render
+function render(data) {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(item => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="top">
+        <div class="title">${item.title}</div>
+        <div class="arrow">⌄</div>
+      </div>
+
+      <div class="extra">
+        <div>📦 Size: ${item.size}</div>
+        <a class="download" href="${item.download}" target="_blank">Download</a>
+      </div>
+    `;
+
+    card.querySelector(".top").onclick = () => {
+      if (openCard && openCard !== card) {
+        openCard.classList.remove("active");
+      }
+
+      card.classList.toggle("active");
+      openCard = card.classList.contains("active") ? card : null;
+    };
+
+    list.appendChild(card);
+  });
+}
+
+// Search
+document.getElementById("search").addEventListener("input", function(e) {
+  const value = e.target.value.toLowerCase();
+
+  const filtered = allData.filter(item =>
+    item.title.toLowerCase().includes(value) ||
+    item.subject.toLowerCase().includes(value) ||
+    item.year.toString().includes(value) ||
+    item.paper.toLowerCase().includes(value)
+  );
+
+  render(filtered);
+});
+</script>
+
+</body>
+</html>
