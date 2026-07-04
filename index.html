@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JCE Papers</title>
-
-<style>
+<title>jce</title><style>
 * {
   box-sizing: border-box;
 }
@@ -137,6 +134,14 @@ body {
   100% { background-position: -200% 0; }
 }
 
+/* Empty state */
+.empty {
+  text-align: center;
+  color: #777;
+  padding: 30px 10px;
+  font-size: 14px;
+}
+
 /* Tablet */
 @media (min-width: 600px) {
   .title { font-size: 16px; }
@@ -148,29 +153,17 @@ body {
   .card { padding: 18px; }
   .title { font-size: 17px; }
 }
-</style>
-</head>
-
-<body>
-
-<!-- SEARCH -->
-<div class="searchBox">
-  <input type="text" id="search" placeholder="Search papers... (Biology, 2020, PP1)">
-</div>
-
-<div class="container">
-  <div id="list">
-
-    <!-- Skeleton -->
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
+</style></head><body><!-- SEARCH --><div class="searchBox">
+  <input type="text" id="search" placeholder="Search Papers">
+</div><div class="container">
+  <div id="list"><!-- Skeleton -->
+<div class="skeleton"></div>
+<div class="skeleton"></div>
+<div class="skeleton"></div>
 
   </div>
-</div>
-
-<script>
-const API = "https://script.google.com/macros/s/AKfycbyaPN50tYufrFke3aB5dw-xoqwpZgbZSvu6xDwYAb0WXvnmTt6vpMaus7YVA7lwACykOQ/exec";
+</div><script>
+const API = "https://script.google.com/macros/s/AKfycbwbdVpjHtK_2R_Nx-ane50Q33eMr4eYwlJ4-XcvNakSLOJIxn0K6nOiFuSsrXybWP3g7g/exec";
 
 let openCard = null;
 let allData = [];
@@ -181,12 +174,22 @@ fetch(API)
   .then(data => {
     allData = data;
     render(data);
+  })
+  .catch(() => {
+    document.getElementById("list").innerHTML =
+      "<p class='empty'>Failed to load papers</p>";
   });
 
 // Render
 function render(data) {
   const list = document.getElementById("list");
   list.innerHTML = "";
+
+  // Empty state
+  if (!data.length) {
+    list.innerHTML = "<div class='empty'>No papers found</div>";
+    return;
+  }
 
   data.forEach(item => {
 
@@ -195,12 +198,12 @@ function render(data) {
 
     card.innerHTML = `
       <div class="top">
-        <div class="title">${item.title}</div>
+        <div class="title">${item.title || "Untitled"}</div>
         <div class="arrow">⌄</div>
       </div>
 
       <div class="extra">
-        <div>📦 Size: ${item.size}</div>
+        <div>📦 Size: ${item.size || "Unknown"}</div>
         <a class="download" href="${item.download}" target="_blank">Download</a>
       </div>
     `;
@@ -218,20 +221,31 @@ function render(data) {
   });
 }
 
-// Search
+// Search (FIXED)
 document.getElementById("search").addEventListener("input", function(e) {
-  const value = e.target.value.toLowerCase();
+  const value = e.target.value.toLowerCase().trim();
 
-  const filtered = allData.filter(item =>
-    item.title.toLowerCase().includes(value) ||
-    item.subject.toLowerCase().includes(value) ||
-    item.year.toString().includes(value) ||
-    item.paper.toLowerCase().includes(value)
-  );
+  // Show all if empty
+  if (!value) {
+    render(allData);
+    return;
+  }
+
+  const filtered = allData.filter(item => {
+    const title = (item.title || "").toLowerCase();
+    const subject = (item.subject || "").toLowerCase();
+    const paper = (item.paper || "").toLowerCase();
+    const year = (item.year || "").toString();
+
+    return (
+      title.includes(value) ||
+      subject.includes(value) ||
+      paper.includes(value) ||
+      year.includes(value)
+    );
+  });
 
   render(filtered);
 });
-</script>
-
-</body>
+</script></body>
 </html>
